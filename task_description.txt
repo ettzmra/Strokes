@@ -1,0 +1,56 @@
+GOAL:
+
+I need a program that allows me to paint patterns in certain areas on a canvas.
+
+Areas are defined by PNG files with only black or white pixels. Black pixels belong to a region, that should be filled with strokes. Strokes should not be on white pixels. Areas can have any shape or size. The given PNG files will always have the same size. If not, the program should say which file is the wrong size and stop.
+
+The canvas is the area on which the robot paints. The canvas is a rectangular area in physical space, with a certain width and height in Millimeters. You are generating strokes on a virtual canvas, with points given in PIXELS. The existing software will take your stroke commands and translate it into Millimeters. You only need to produce valid strokes in pixel space.
+
+Patterns are named generators, which create a certain stroke repeatedly at different positions, angles, densities and sizes. Strokes should be allowed to vary randomly in one or more of their parameters. The parameters for a pattern are defined in the JSON file "patterns.json". The patterns to be implemented are:
+
+1) "lines": A generator which produces a certain number of straight lines in a certain region. A line consists of a start and end point. Its length is given by the parameter "size".
+
+2) "circles": A generator which produces a circle centered at a certain location and with a radius given by the parameter "size".
+
+3) "dots": A generator which produces dots. These are like lines of size zero.
+
+STROKE COMMAND FORMAT
+
+We use a coordinate system starting in the top left corner with axes labelled like this:
+
+o------> +X
+|
+V
++Y
+
+Your output data is given in PIXELS. A stroke is defined as a sequence of 2D points formatted like this:
+
+(x, y) (x, y) (x, y) ...
+
+One line of this corresponds to one stroke. Strokes must consist of at least two points. The numbers x, y are floating point numbers. A tuple (x, y) defines a point. Points should never exceed canvas bounds.
+
+OTHER COMMANDS:
+
+Each region has an associated color. A block of strokes should be prefixed by the command "Color Get [color name]", which allows the robot to pick the color required for the next surface.
+
+The first line of a file should be "Stroke CoordinateSystem Origin (0, 0, 0) Max ([maxX], [maxY], 1)", where "maxX" and "maxY" are the size of the PNG file.
+
+YOUR OUTPUTS:
+
+The file "results.ped" which contains strokes in the e-david format.
+
+SUGGESTED PLAN
+
+1) Just generate uniform points in one are for one file (ignore patterns.json at first)
+2) Write a function which generates an output PNG which paints the strokes you generate, so you can visually check what is going on
+3) Write the line generator and test that
+4) Write the circles generator
+
+HINTS:
+The generators all have the same input and all output strokes. So build a uniform interface for them, so swapping between them is easy.
+
+result.png has a very rough, hand-drawn, example result of what would be a corresponding result of patterns.json.
+
+result.ped does not correspond to result.png
+
+Build your program to be debuggable and so you can advance step by step. You don't need to be efficient, valid results are most important. This is not an exercise, ask me anytime something is unclear or you need to decide between two design options

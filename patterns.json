@@ -1,0 +1,34 @@
+{
+    "1.png" : {
+	"pattern" : "lines",
+	"density" : 2,
+	"angle" : 0,
+	"size" : 5,
+	"random" : "all",
+	"color" : "red"
+    },
+    "2.png" : {
+	"pattern" : "lines",
+	"density" : 4,
+	"angle" : 45,
+	"size" : 10,
+	"random" : "false",
+	"color" : "green"
+    },
+    "3.png" : {
+	"pattern" : "circles",
+	"density" : 0.5,
+	"angle" : 0,
+	"size" : 5,
+	"random" : "false",
+	"color" : "black"
+    },
+    "4.png" : {
+	"pattern" : "dots",
+	"density" : 0.5,
+	"angle" : 0,
+	"size" : 1,
+	"random" : "position, size",
+	"color" : "yellow"
+    }
+}
