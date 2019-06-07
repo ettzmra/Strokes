@@ -1,6 +1,6 @@
 from PIL import Image, ImageDraw
 import json
-# import math
+import math
 
 
 def compatible_pngs(*pngs):  # any number of png files can be written as arguments which shall be gathered in a tuple)
@@ -34,24 +34,32 @@ class Pattern:
             data = json.load(db)  # loading json file as the class dictionary
         self.dict = data
         self.name = png
+        self.img = Image.open(png)
         self.area = black_area(png)
 
-    def draw_lines(self, sec_img):
-        img = Image.open(self.name)
-        draw = ImageDraw.Draw(img)
+    def draw_lines(self):
+        draw = ImageDraw.Draw(self.img)
         specs = self.dict[self.name]   # this is the dictionary of specifications belonging to the png name.
-        for start_point in self.area:  # looping all coordinate points in black area of the png
-            x1, y1 = start_point
-            length = specs["size"]  # length of the line as specified for the png name in json file
-            # ang = specs["angle"]
-            end_point = ((x1 + length), (y1 + length))
-            if end_point in self.area:
-                draw.line([start_point, end_point], fill=specs["color"], width=specs["density"])
-                img.save(sec_img)
+        length = specs["size"]  # length of the line as specified for the png name in json file
+        line_color = specs["color"]
+        angle_cos = round(math.cos(math.radians(specs["angle"])), 2)
+        angle_sin = round(math.sin(math.radians(specs["angle"])), 2)
+        # looping all coordinate points in black area of the png:
+        y1 = self.area[0][1]  # y coordinate of startpoint
+        while y1 in [point[1] for point in self.area]:
+            x1 = self.area[0][0]  # x coordinate of start_point
+            while x1 <= self.area[-1][0]:
+                end_point = (int(x1 + length * angle_cos), int(y1 + length * angle_sin))
+                print(end_point)
+                if end_point in self.area:
+                    draw.line([(x1, y1), end_point], fill=line_color, width=specs["density"])
+                    self.img.save(self.name)
+                    x1 += 40
+                else: x1 += 1
+            y1 = int(y1 + (length * angle_sin * 3))
 
 
-# print(compatible_pngs("1.png", "2.png", "3.png"))
+
+print(compatible_pngs("1.png", "2.png", "3.png"))
 img_2 = Pattern("patterns.json", "2.png")
-print(img_2.dict)
-print(img_2.area)
-img_2.draw_lines("22.png")
+img_2.draw_lines()
