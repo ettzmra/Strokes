@@ -17,9 +17,9 @@
     },
     "3.png" : {
 	"pattern" : "circles",
-	"density" : 0.5,
+	"density" : 2,
 	"angle" : 0,
-	"size" : 5,
+	"size" : 20,
 	"random" : "false",
 	"color" : "black"
     },
