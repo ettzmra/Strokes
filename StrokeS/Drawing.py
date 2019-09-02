@@ -4,43 +4,43 @@ import math
 from math import pi
 
 
-def compatible_files(png_array):
-    for indx in range(len(png_array) - 1):
-        try:
-            im = Image.open(png_array[indx])
-            next_im = Image.open(png_array[indx + 1])
-            if im.size != next_im.size:
-                raise ValueError("different png sizes")
-        except IOError:
-            print("couldn't open the file, write arguments and their extensions inside quotes")
-        else: return png_array, im.size
-
-
-def black_area(png_file):
-    im = Image.open(png_file)
-    pix = im.load()  # gives pixel color
-    black_pxls = []
-    for y in range(im.size[1]):  # looping through all coordinates
-        for x in range(im.size[0]):
-            if pix[x, y] == (0, 0, 0):  # if a pixel is black, its coordinate is saved to the black_pxls list.
-                black_pxls.append((x, y))
-    return black_pxls
-
-
 class Pattern:
     def __init__(self, json_data, result_img, *pngs):  # any number of png files can be written as arguments which shall be gathered in a tuple
         with open(json_data, "r") as db:
             data = json.load(db)  # loading json file as the class dictionary
         self.dict = data
-        self.pngs = compatible_files(pngs)[0]  # returns all given pngs if they are fully compatible
+        self.pngs = self.all_same_size(pngs)[0]  # returns all given pngs if they are fully compatible
         self.area = {}
         for png in self.pngs:
-            self.area[png] = black_area(png)
-        Image.new('RGB', (compatible_files(pngs)[1]), color='white').save(result_img)
+            self.area[png] = self.black_area(png)
+        Image.new('RGB', (self.all_same_size(pngs)[1]), color='white').save(result_img)
         self.result_img = result_img
         self.img = Image.open(result_img)
         self.img_draw = ImageDraw.Draw(self.img)
         self.methods = {"lines": lambda png: self.lines(png), "circles": lambda png: self.circles(png), "dots": lambda png: self.dots(png)}
+
+    def all_same_size(self, png_array):
+        for indx in range(len(png_array) - 1):
+            try:
+                im = Image.open(png_array[indx])
+                next_im = Image.open(png_array[indx + 1])
+                if im.size != next_im.size:
+                    raise ValueError("different png sizes")
+            except IOError:
+                print("couldn't open the file, write arguments and their extensions inside quotes")
+            else:
+                return png_array, im.size
+
+    def black_area(self, png_file):
+        im = Image.open(png_file)
+        pix = im.load()  # gives pixel color
+        black_pxls = []
+        for y in range(im.size[1]):  # looping through all coordinates
+            for x in range(im.size[0]):
+                if pix[x, y] == (0, 0, 0):  # if a pixel is black, its coordinate is saved to the black_pxls list.
+                    black_pxls.append((x, y))
+        return black_pxls
+
 
     def lines(self, png):
         specs = self.dict[png]   # this is the dictionary of specifications given for the png in json file.
@@ -76,8 +76,6 @@ class Pattern:
                 x2, y2 = (x1 + slope[0]), (y1 + slope[1])  # end point coordinates of one line
                 if (round(x1), round(y1)) and (round(x2), round(y2)) in self.area[png]:
                     coordinate_list.append([(x1, y1), (x2, y2)])  # adds start and end points of one stroke, e.g. one line of the pattern.
-                    # self.img_draw.line([(x1, y1), (x2, y2)], fill=specs["color"])
-                    # self.img.save(self.result_img)
                 else: pass
                 x1 += density  # x coord of start point of each line based on density, whether randomized or not.
             y1 += density   # y coord of start point of each line based on density, whether randomized or not.
@@ -163,7 +161,7 @@ class Pattern:
                             self.img_draw.line((points_list[index], points_list[index-1]), fill=color)
                             self.img.save(self.result_img)
 
-
-img = Pattern("patterns.json", "python_result_1.png", "1.png", "2.png", "3.png", "4.png")
-img.all_points("python_result_1.ped")
-img.draw_all()
+#
+# img = Pattern("patterns.json", "python_result_1.png", "1.png", "2.png", "3.png", "4.png")
+# img.all_points("python_result_1.ped")
+# img.draw_all()
