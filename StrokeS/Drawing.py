@@ -9,9 +9,9 @@ class Pattern:
         with open(json_data, "r") as db:
             data = json.load(db)  # loading json file as the class dictionary
         self.dict = data
-        self.pngs = self.all_same_size(pngs)[0]  # returns all given pngs if they are fully compatible
+        self.image_list = self.all_same_size(pngs)[0]  # returns all given pngs if they are fully compatible
         self.area = {}
-        for png in self.pngs:
+        for png in self.image_list:
             self.area[png] = self.black_area(png)
         Image.new('RGB', (self.all_same_size(pngs)[1]), color='white').save(result_img)
         self.result_img = result_img
@@ -20,10 +20,10 @@ class Pattern:
         self.methods = {"lines": lambda png: self.lines(png), "circles": lambda png: self.circles(png), "dots": lambda png: self.dots(png)}
 
     def all_same_size(self, png_array):
-        for indx in range(len(png_array) - 1):
+        for i in range(len(png_array) - 2):
             try:
-                im = Image.open(png_array[indx])
-                next_im = Image.open(png_array[indx + 1])
+                im = Image.open(png_array[i])
+                next_im = Image.open(png_array[i + 1])
                 if im.size != next_im.size:
                     raise ValueError("different png sizes")
             except IOError:
@@ -138,7 +138,7 @@ class Pattern:
     def all_points(self, result_ped):  # drawing all patterns at once and writing all pattern coordinates as command:
         with open(result_ped, "a+") as ped_file:
             ped_file.write("Stroke CoordinateSystem Origin (0, 0, 0) Max (640, 480, 1)")
-            for png in self.pngs:
+            for png in self.image_list:
                 ped_file.write("\n \n")
                 if self.dict[png]["pattern"] in self.methods:
                     list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
@@ -149,7 +149,7 @@ class Pattern:
                         ped_file.write("\n")
 
     def draw_all(self):
-        for png in self.pngs:
+        for png in self.image_list:
             if self.dict[png]["pattern"] in self.methods:
                 list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
                 for points_list in list_of_coordinates:
