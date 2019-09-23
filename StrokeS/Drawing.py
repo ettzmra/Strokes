@@ -1,35 +1,37 @@
 from PIL import Image, ImageDraw
 import json, random
-import math
+import math, os
 from math import pi
 
 
 class Pattern:
-    def __init__(self, json_data, result_img, *pngs):  # any number of png files can be written as arguments which shall be gathered in a tuple
+    def __init__(self, json_data, *pngs):  # any number of png files can be written as arguments which shall be gathered in a tuple
         with open(json_data, "r") as db:
-            data = json.load(db)  # loading json file as the class dictionary
-        self.dict = data
-        self.image_list = self.all_same_size(pngs)[0]  # returns all given pngs if they are fully compatible
-        self.area = {}
-        for png in self.image_list:
-            self.area[png] = self.black_area(png)
-        Image.new('RGB', (self.all_same_size(pngs)[1]), color='white').save(result_img)
-        self.result_img = result_img
-        self.img = Image.open(result_img)
-        self.img_draw = ImageDraw.Draw(self.img)
+            self.dict = json.load(db)  # loading json file as the class dictionary
+        #self.dict = data
+        # self.png_list = self.all_same_size(pngs)[0]  # returns all given pngs if they are fully compatible
+        # self.area = {png: self.black_area(png) for png in self.png_list}
+        self.check_size_and_drawing_areas(pngs)
+        #Image.new('RGB', self.img_size, color='white').save(result_img)
+        # self.result_img = result_img
+        # self.img = Image.open(result_img)
+        # self.img_draw = ImageDraw.Draw(self.img)
         self.methods = {"lines": lambda png: self.lines(png), "circles": lambda png: self.circles(png), "dots": lambda png: self.dots(png)}
 
-    def all_same_size(self, png_array):
-        for i in range(len(png_array) - 2):
+    def check_size_and_drawing_areas(self, given_pngs):
+        for i in range(len(given_pngs)):
             try:
-                im = Image.open(png_array[i])
-                next_im = Image.open(png_array[i + 1])
+                im = Image.open(given_pngs[i - 1])
+                next_im = Image.open(given_pngs[i])
                 if im.size != next_im.size:
                     raise ValueError("different png sizes")
             except IOError:
-                print("couldn't open the file, write arguments and their extensions inside quotes")
+                print("couldn't open the file, please check if it really exists.")
             else:
-                return png_array, im.size
+                self.area = {os.path.basename(png): self.black_area(png) for png in given_pngs}
+                self.png_list = [os.path.basename(png) for png in given_pngs]
+                self.img_size = im.size
+                #return given_pngs, im.size
 
     def black_area(self, png_file):
         im = Image.open(png_file)
@@ -135,10 +137,10 @@ class Pattern:
             y1 += density
         return coordinate_list, specs["color"]
 
-    def all_points(self, result_ped):  # drawing all patterns at once and writing all pattern coordinates as command:
-        with open(result_ped, "a+") as ped_file:
+    def all_points(self):  # writing all pattern coordinates as command:
+        with open("resulting coordinates.ped", "a+") as ped_file:
             ped_file.write("Stroke CoordinateSystem Origin (0, 0, 0) Max (640, 480, 1)")
-            for png in self.image_list:
+            for png in self.png_list:
                 ped_file.write("\n \n")
                 if self.dict[png]["pattern"] in self.methods:
                     list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
@@ -148,18 +150,21 @@ class Pattern:
                             ped_file.write(str(points) + " ")
                         ped_file.write("\n")
 
-    def draw_all(self):
-        for png in self.image_list:
+    def draw_all(self):  # drawing all patterns at once
+        Image.new('RGB', self.img_size, color='white').save("resulting image.png")
+        img = Image.open("resulting image.png")
+        img_draw = ImageDraw.Draw(img) 
+        for png in self.png_list:
             if self.dict[png]["pattern"] in self.methods:
                 list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
                 for points_list in list_of_coordinates:
                     if len(points_list) == 2:
-                        self.img_draw.line((points_list[0], points_list[1]), fill=color)
-                        self.img.save(self.result_img)
+                        img_draw.line((points_list[0], points_list[1]), fill=color)
+                        img.save("resulting image.png")
                     elif len(points_list) > 2:
                         for index in range(len(points_list)):
-                            self.img_draw.line((points_list[index], points_list[index-1]), fill=color)
-                            self.img.save(self.result_img)
+                            img_draw.line((points_list[index], points_list[index-1]), fill=color)
+                            img.save("resulting image.png")
 
 #
 # img = Pattern("patterns.json", "python_result_1.png", "1.png", "2.png", "3.png", "4.png")
