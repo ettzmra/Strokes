@@ -5,33 +5,17 @@ from math import pi
 
 
 class Pattern:
-    def __init__(self, json_data, *pngs):  # any number of png files can be written as arguments which shall be gathered in a tuple
-        with open(json_data, "r") as db:
-            self.dict = json.load(db)  # loading json file as the class dictionary
-        #self.dict = data
-        # self.png_list = self.all_same_size(pngs)[0]  # returns all given pngs if they are fully compatible
-        # self.area = {png: self.black_area(png) for png in self.png_list}
-        self.check_size_and_drawing_areas(pngs)
-        #Image.new('RGB', self.img_size, color='white').save(result_img)
-        # self.result_img = result_img
-        # self.img = Image.open(result_img)
-        # self.img_draw = ImageDraw.Draw(self.img)
+    def __init__(self, pngs, data):
+        self.dict = data
+        for i in range(len(pngs)):
+            im = Image.open(pngs[i - 1])
+            next_im = Image.open(pngs[i])
+            if im.size == next_im.size:
+                self.area = {os.path.basename(png): self.black_area(png) for png in pngs}
+                self.png_list = [os.path.basename(png) for png in pngs]
+                self.img_size = im.size
         self.methods = {"lines": lambda png: self.lines(png), "circles": lambda png: self.circles(png), "dots": lambda png: self.dots(png)}
 
-    def check_size_and_drawing_areas(self, given_pngs):
-        for i in range(len(given_pngs)):
-            try:
-                im = Image.open(given_pngs[i - 1])
-                next_im = Image.open(given_pngs[i])
-                if im.size != next_im.size:
-                    raise ValueError("different png sizes")
-            except IOError:
-                print("couldn't open the file, please check if it really exists.")
-            else:
-                self.area = {os.path.basename(png): self.black_area(png) for png in given_pngs}
-                self.png_list = [os.path.basename(png) for png in given_pngs]
-                self.img_size = im.size
-                #return given_pngs, im.size
 
     def black_area(self, png_file):
         im = Image.open(png_file)
@@ -160,11 +144,13 @@ class Pattern:
                 for points_list in list_of_coordinates:
                     if len(points_list) == 2:
                         img_draw.line((points_list[0], points_list[1]), fill=color)
-                        img.save("resulting image.png")
+                        #img.save("resulting image.png")
+                        return img
                     elif len(points_list) > 2:
                         for index in range(len(points_list)):
                             img_draw.line((points_list[index], points_list[index-1]), fill=color)
-                            img.save("resulting image.png")
+                            #img.save("resulting image.png")
+                            return img
 
 #
 # img = Pattern("patterns.json", "python_result_1.png", "1.png", "2.png", "3.png", "4.png")
