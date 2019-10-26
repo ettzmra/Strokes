@@ -65,7 +65,7 @@ class NewJson(QWidget):
             self.spec_dict.update(chosen_specs)
             self.close()
             #return spec_dict
-        #print(self.spec_dict)
+        print(self.spec_dict)
 
 
 class PreviewWindow(QWidget):
@@ -131,7 +131,7 @@ class BasicGui(QWidget):
 # ACTIONS
         self.posx, self.posy = 390, 70
         self.data = {}
-        self.png_names = []
+        self.images = {}
         btn2.clicked.connect(self.png_inputs)
         btn1.clicked.connect(self.existing_json)
         self.draw_button.clicked.connect(self.draw_patterns)
@@ -164,11 +164,15 @@ class BasicGui(QWidget):
 
 
 
-    def new_json(self, event, img):
-        self.popup = NewJson(img, self.data)
+    def new_json(self, png):
+        self.popup = NewJson(png, self.data)
         self.popup.setGeometry(400, 400, 400, 300)
         self.popup.show()
 
+
+    # def png_name(self, png):
+    #     self.png = png
+    #     print(self.png)
 
         # self.watcher = QFileSystemWatcher()
         # self.watcher.addPath(self.json_file)
@@ -182,39 +186,44 @@ class BasicGui(QWidget):
         chosen_pngs = QFileDialog.getOpenFileNames(self, 'Open file', "", "Png Files (*.png)", '/home')[0]  # notice the plural suffix "s" in ".getOpenFileNames", which enables selection of multiple files
         print(chosen_pngs)
         for png in chosen_pngs:
-            if png not in self.png_names:
-                conf_act = QAction("Configure", self)
-                remove_act = QAction("Remove", self)
-                self.png_names.append(png)
-                label = QPushButton(self)
-                #label = QLabel(self)
-                label.setStyleSheet("border: 3px inset grey")
-                label.setFixedSize(64, 40)
-                pixmap = QPixmap(png).scaled(64, 40, Qt.KeepAspectRatio, Qt.FastTransformation)  # It works the same without FastTransformation, the last parameter.
-                label.setPixmap(pixmap)
-                label.setToolTip(os.path.basename(png) + "\n" + 'right click for options')
-                #label.mouseDoubleClickEvent = lambda event: self.new_json(event, png)
-                label.move(self.posx, self.posy)
-                label.show()
-                # label.setContextMenuPolicy(Qt.ActionsContextMenu)
-                # label.addAction(conf_act)
-                # conf_act.triggered(self.new_json(png))
-                #remove_act.trigger(label.hide)
+            if png not in self.images:
+                #conf_act = QAction("Configure", self)
+                #remove_act = QAction("Remove", self)
+                self.label = QPushButton(self)
+                self.label.setIcon(QIcon(png))
+                self.label.setIconSize(QSize(64, 40))
+                self.label.setFixedSize(70, 46)
+                self.label.setToolTip(os.path.basename(png) + "\n" + 'click to configure')
+                self.images[png] = self.label
+                self.label.move(self.posx, self.posy)
+                self.label.show()
+
+                #self.label.setStyleSheet("border: 3px inset grey")
+                #pixmap = QPixmap(png).scaled(64, 40, Qt.KeepAspectRatio, Qt.FastTransformation)  # It works the same without FastTransformation, the last parameter.
+                #self.label.setPixmap(pixmap)
+                #self.label.mouseDoubleClickEvent = lambda event: self.new_json(event, png)
                 self.posx += 80
                 if self.posx == 790:
-                    self.posy += 50
+                    self.posy += 56
                     self.posx = 390
+        helper = lambda i: (lambda: self.new_json(i))
+        for img in self.images:
+            print(img)
+            print(type(img))
+
+            self.images[img].clicked.connect(helper(img))
+            #self.images[img].clicked.connect(lambda img=img: self.new_json(img))
 
 
     def draw_patterns(self):
-        img = Drawing.Pattern(self.png_names, self.json_file)
+        img = Drawing.Pattern(self.images, self.json_file)
         result = img.draw_all()
         pixmap = QPixmap(result).scaled(256, 160, Qt.KeepAspectRatio, Qt.FastTransformation)
         QLabel().setPixmap(pixmap).show()
 
 
     def get_coordinates(self):
-        img = Drawing.Pattern(self.png_names, self.json_file,)
+        img = Drawing.Pattern(self.images, self.json_file,)
         img.all_points()
 
 
