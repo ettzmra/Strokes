@@ -1,6 +1,5 @@
 from PIL import Image, ImageDraw
-import json, random
-import math, os
+import math, os, random
 from math import pi
 
 
@@ -144,15 +143,15 @@ class Pattern:
                 for points_list in list_of_coordinates:
                     if len(points_list) == 2:
                         img_draw.line((points_list[0], points_list[1]), fill=color)
-                        #img.save("resulting image.png")
-                        return img
+                        img.save("resulting image.png")
+                        #return img
                     elif len(points_list) > 2:
                         for index in range(len(points_list)):
                             img_draw.line((points_list[index], points_list[index-1]), fill=color)
-                            #img.save("resulting image.png")
-                            return img
+                            img.save("resulting image.png")
+                            #return img
 
 #
-# img = Pattern("patterns.json", "python_result_1.png", "1.png", "2.png", "3.png", "4.png")
+#img = Pattern(["2.png"], {"2.png" : {"pattern" : "lines", "density" : 4, "angle" : 45, "size" : 10, "random" : "false", "color" : "green"}})
 # img.all_points("python_result_1.ped")
-# img.draw_all()
+#img.draw_all()
