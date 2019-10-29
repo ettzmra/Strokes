@@ -24,8 +24,8 @@ class Specs(QWidget):
     def given_text(self, text):
         try: num = int(text)
         except:
-            if text != "Choose": self.input = text
-            else: pass
+            if len(text) == 0 and hasattr(self, 'input'): del self.input
+            if len(text) > 0 and text != "Choose": self.input = text
         else:
             if num > 0: self.input = num
 
@@ -64,79 +64,27 @@ class NewJson(QWidget):
     def save_data_and_preview(self):
         sender = self.sender()
         chosen_specs = {self.img: {}}
+        random = self.spec_list[1]
         for each in self.spec_list:
             if hasattr(each, 'input'): chosen_specs[self.img][each.spec] = each.input
-            elif hasattr(self.spec_list[1], 'input'):
-                if chosen_specs[self.img]["random"] == "all": random_specs = ["size","density", "angle"]
-                else: random_specs = chosen_specs[self.img]["random"].split(",")
-                if each.spec in random_specs: chosen_specs[self.img][each.spec] = 0
+            elif hasattr(random, 'input'):
+                if random.input == "all": random_specs = ["size","position", "angle"]
+                else: random_specs = random.input.split(",")
+                if each.spec in random_specs:
+                    if each.spec == "position": chosen_specs[self.img]["density"] = 0
+                    else: chosen_specs[self.img][each.spec] = 0
             if not hasattr(each, 'input') and each.spec not in chosen_specs[self.img]:
                 QMessageBox.information(self, "Warning", "Please make selection", QMessageBox.Ok)
                 break
-            # try: chosen_specs[self.img][each.spec] = each.input  # OR: if hasattr(each, 'input'): chosen_specs[self.img][each.spec] = each.input
-            #     # if each.spec == "random" and each.input != "false":
-            #     #     if each.input == "all": random_specs = ["size","density", "angle"]
-            #     #     else: random_specs = each.input.split(",")
-            #     #     for spec in random_specs: chosen_specs[self.img][spec] = 0
-            # except:
-            #     if "random" in chosen_specs[self.img] and chosen_specs[self.img]["random"] != "false":
-            #         if chosen_specs[self.img]["random"] == "all": random_specs = ["size","density", "angle"]
-            #         else: random_specs = chosen_specs[self.img]["random"].split(",")
-            #         if each.spec in random_specs: chosen_specs[self.img][each.spec] = 0
-            #     elif "random" not in chosen_specs[self.img] or chosen_specs[self.img]["random"] == "false":
-            #         QMessageBox.information(self, "Warning", "Please make selection", QMessageBox.Ok)
-            #         break
         if len(chosen_specs[self.img]) == 6:
             if sender == self.save_btn:
                 self.spec_dict.update(chosen_specs)
             elif sender == self.preview_btn:
                 self.image = Drawing.Pattern([self.img_full_path], chosen_specs)
                 self.result = self.image.draw_all()
-                #self.preview = PreviewWindow(self.img_full_path, chosen_specs)
-
-                #self.preview.setGeometry(300, 300, 800, 700)
-                #self.preview.show()
 
 
-# class PreviewWindow(QMainWindow):
-#     def __init__(self, img, data):
-#         super().__init__()
-#         self.setWindowTitle("Preview")
-#
-#         # save_file_act = QAction("Save", self)
-#         # save_file_act.setStatusTip("Save current page")
-#         # save_file_act.triggered.connect(self.file_save)
-#
-#         # save_As_act = QAction("Save As...", self)
-#         # save_As_act.setStatusTip("Save current page to specified file")
-#         # save_As_act.triggered.connect(self.file_save)
-#
-#         exit_act = QAction(QIcon('/home/mel/Downloads/Telegram Desktop/Strokes/StrokeGUI/icon.png'), 'Exit', self)
-#         exit_act.setStatusTip('Exit application')
-#         exit_act.triggered.connect(self.close)
-#
-#         menubar = self.menuBar()
-#         fileMenu = menubar.addMenu('File')
-#         #fileMenu.addAction(save_file_act)
-#         #fileMenu.addAction(save_As_act)
-#         fileMenu.addAction(exit_act)
-#
-#         self.image = Drawing.Pattern([img], data)
-#         self.result = self.image.draw_all()
-#         #self.window = self.result.show()
-#         #pixmap = QPixmap.fromImage(ImageQt(self.result.show()))
-#         #pixmap = qtimage.scaled(256, 160, Qt.KeepAspectRatio, Qt.FastTransformation)
-#         #pixmap = QPixmap(img) #.scaled(256, 160, Qt.KeepAspectRatio, Qt.FastTransformation)
-#         #label = QLabel(self)
-#         #label.setPixmap(pixmap)
-#         # container = QWidget()
-#         # layout = QVBoxLayout(container)
-#         #layout.addWidget(self.window)
-#         self.setCentralWidget(self.result.show())
-#         #self.resize(pixmap.width(), pixmap.height())
-#         #self.setGeometry(300, 300, 800, 700)  # The first two parameters are the x and y positions of the window. The third is the width and the fourth is the height of the window.
-#         #self.center()  # The code that will center the window.
-#         self.show()
+
 
     # def file_save(self):
     #     name = QFileDialog.getSaveFileName(self, 'Save File')
