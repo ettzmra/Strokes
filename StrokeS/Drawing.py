@@ -44,8 +44,7 @@ class Pattern:
                 # randomization of features if it's specified in the specs dictionary:
                 if specs["random"] == "all":
                     length = random.randint(0, math.ceil(specs["size"] * 3))
-                    if specs["angle"] == 0:  # total randomization if the angle is 0.
-                        slope = (random.randint(-50, 50), random.randint(-50, 50))
+                    if specs["angle"] == 0: slope = (random.randint(-50, 50), random.randint(-50, 50)) # total randomization if the angle is 0.
                     else:   # relative randomization if the angle is other than 0.
                         slope = (random.randint(0, math.ceil(length * angle_cos * 3)), random.randint(0, math.ceil(length * angle_sin * 3)))
                     density = random.randint(0, math.ceil(specs["density"] * 3))
@@ -82,7 +81,8 @@ class Pattern:
                 if "position" in specs["random"]:
                     density = random.randint(0, math.ceil(specs["density"] * 3))
                 if "size" in specs["random"]:
-                    diameter = random.uniform(0, specs["size"] * 6)
+                    if specs["size"] > 0: diameter = random.uniform(0, specs["size"] * 6)
+                    else: diameter = random.uniform(0, 50)
                 x2, y2 = (x1 + diameter), (y1 + diameter)
                 if (round(x1), round(y1)) and (round(x2), round(y2)) in self.area[png]:
                     circle_center = (x1 + x2) / 2, (y1 + y2) / 2
@@ -143,15 +143,14 @@ class Pattern:
                 for points_list in list_of_coordinates:
                     if len(points_list) == 2:
                         img_draw.line((points_list[0], points_list[1]), fill=color)
-                        img.save("resulting image.png")
-                        #return img
+                        #img.save("resulting image.png")
                     elif len(points_list) > 2:
                         for index in range(len(points_list)):
                             img_draw.line((points_list[index], points_list[index-1]), fill=color)
-                            img.save("resulting image.png")
-                            #return img
+        img.show()
 
-#
+
 #img = Pattern(["2.png"], {"2.png" : {"pattern" : "lines", "density" : 4, "angle" : 45, "size" : 10, "random" : "false", "color" : "green"}})
 # img.all_points("python_result_1.ped")
-#img.draw_all()
+#a = img.draw_all()
+#a.save("result.png")
