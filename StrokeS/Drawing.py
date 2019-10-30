@@ -26,6 +26,12 @@ class Pattern:
                     black_pxls.append((x, y))
         return black_pxls
 
+    def spec_values(self):
+        for png in self.png_list:
+            data = self.dict[png]
+
+
+
 
     def lines(self, png):
         specs = self.dict[png]   # this is the dictionary of specifications given for the png in json file.
@@ -45,8 +51,7 @@ class Pattern:
                 if specs["random"] == "all":
                     length = random.randint(0, math.ceil(specs["size"] * 3))
                     if specs["angle"] == 0: slope = (random.randint(-50, 50), random.randint(-50, 50)) # total randomization if the angle is 0.
-                    else:   # relative randomization if the angle is other than 0.
-                        slope = (random.randint(0, math.ceil(length * angle_cos * 3)), random.randint(0, math.ceil(length * angle_sin * 3)))
+                    else: slope = (random.randint(0, math.ceil(length * angle_cos * 3)), random.randint(0, math.ceil(length * angle_sin * 3))) # relative randomization if the angle is other than 0.
                     density = random.randint(0, math.ceil(specs["density"] * 3))
                 if "position" in specs["random"]:
                     density = random.randint(0, math.ceil(specs["density"] * 3))
@@ -120,8 +125,8 @@ class Pattern:
             y1 += density
         return coordinate_list, specs["color"]
 
-    def all_points(self):  # writing all pattern coordinates as command:
-        with open("resulting coordinates.ped", "a+") as ped_file:
+    def all_points(self, file_name):  # writing all pattern coordinates as command:
+        with open(file_name, "w") as ped_file:
             ped_file.write("Stroke CoordinateSystem Origin (0, 0, 0) Max (640, 480, 1)")
             for png in self.png_list:
                 ped_file.write("\n \n")
