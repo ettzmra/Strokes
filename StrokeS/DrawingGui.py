@@ -1,5 +1,5 @@
 import sys, os, json
-from PyQt5.QtWidgets import QWidget, QComboBox, qApp, QLineEdit, QCheckBox, QFileDialog, QToolTip, QVBoxLayout, QHBoxLayout, QMainWindow, QAction, QGridLayout, QLabel, QTextEdit, QPushButton, QApplication, QMessageBox
+from PyQt5.QtWidgets import QWidget, QComboBox, qApp, QLineEdit, QFileDialog, QToolTip, QHBoxLayout, QGridLayout, QLabel, QTextEdit, QPushButton, QApplication, QMessageBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSize
 from StrokeS import Drawing
@@ -133,7 +133,6 @@ class BasicGui(QWidget):
         self.coordinate_button.clicked.connect(self.draw_patterns_and_get_coordinates)
         change_btn.clicked.connect(self.change_json)
         self.clear_btn.clicked.connect(self.clear_all)
-        #self.clear_btn.clicked.connect(self.png_inputs)
 
         self.setGeometry(300, 300, 800, 600)  # The first two parameters are the x and y positions of the window. The third is the width and the fourth is the height of the window.
         self.setFixedSize(800, 600)
