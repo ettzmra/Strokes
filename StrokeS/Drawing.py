@@ -1,18 +1,16 @@
 from PIL import Image, ImageDraw
-import math, os, random
+import math, os, random, uuid
 from math import pi
 
 
-class Pattern:
+class Strokes:
     def __init__(self, pngs, data):
         self.dict = data
-        for i in range(len(pngs)):
-            im = Image.open(pngs[i - 1])
-            next_im = Image.open(pngs[i])
-            if im.size == next_im.size:
-                self.area = {os.path.basename(png): self.black_area(png) for png in pngs}
-                self.png_list = [os.path.basename(png) for png in pngs]
-                self.img_size = im.size
+        size_variations = set([Image.open(png).size for png in pngs])
+        if len(size_variations) == 1:
+            self.area = {os.path.basename(png): self.black_area(png) for png in pngs}
+            self.png_list = [os.path.basename(png) for png in pngs]
+            self.img_size = next(iter(size_variations))
         self.methods = {"lines": lambda png: self.lines(png), "circles": lambda png: self.circles(png), "dots": lambda png: self.dots(png)}
 
 
@@ -113,12 +111,13 @@ class Pattern:
             y1 += density
         return coordinate_list, specs["color"]
 
-    def all_points(self, file_name):  # writing all pattern coordinates as command:
-        with open(file_name, "w") as ped_file:
+    def all_points(self):  # writing all stroke coordinates in a ped file:
+        self.filename = str(uuid.uuid4()) + ".ped"
+        with open(self.filename, "a+") as ped_file:
             ped_file.write("Stroke CoordinateSystem Origin (0, 0, 0) Max (640, 480, 1)")
             for png in self.png_list:
-                ped_file.write("\n \n")
-                if self.dict[png]["pattern"] in self.methods:
+                if png in self.dict and self.dict[png]["pattern"] in self.methods:
+                    ped_file.write("\n \n")
                     list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
                     ped_file.write("Color Get " + color.capitalize() + "\n \n")
                     for each_stroke in list_of_coordinates:
@@ -126,11 +125,11 @@ class Pattern:
                             ped_file.write(str(points) + " ")
                         ped_file.write("\n")
 
-    def draw_all(self):  # drawing all patterns at once
+    def draw_all(self):  # drawing the resulting image depending on the given data in a created instance.
         img = Image.new('RGB', self.img_size, color='white')
         img_draw = ImageDraw.Draw(img) 
         for png in self.png_list:
-            if self.dict[png]["pattern"] in self.methods:
+            if png in self.dict and self.dict[png]["pattern"] in self.methods:
                 list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
                 for points_list in list_of_coordinates:
                     if len(points_list) == 2:
