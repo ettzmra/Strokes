@@ -1,4 +1,4 @@
-import sys, os, json, shutil
+import sys, os, json
 from PyQt5.QtWidgets import QWidget, QComboBox, qApp, QLineEdit, QFileDialog, QToolTip, QHBoxLayout, QGridLayout, QLabel, QTextEdit, QPushButton, QApplication, QMessageBox
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSize
@@ -198,24 +198,23 @@ class MainApp(QWidget):  # Main application and window
 
     def draw_patterns_and_get_coordinates(self): # this method is connected to self.draw_button and self.coordinate_button, gets called when at least one of them are clicked.
         img = Drawing.Strokes(self.images, self.data)  # creates an instance of Strokes class.
-        sender = self.sender()  # returns which button gets clicked.
-        if sender == self.draw_button: # when self.draw_button is clicked, an image is drawn according to the data in the created instance above and shown on a new window.
-            try: img.draw_all()
-            except: QMessageBox.information(self, "Data Error", "Please provide at least one image file and relevant data")
-            else: QMessageBox.information(self, "Drawing", "Task completed!")
-        elif sender == self.coordinate_button:  # when self.coordinate_button is clicked, coordinates of all strokes in the resulting image are written and saved in a ped file.
-            try: img.all_points()
-            except: QMessageBox.information(self, "Data Error", "Please provide at least one image file and relevant data")
-            else:
+        try: strokes = img.all_points()
+        except: QMessageBox.information(self, "Error", "Please provide at least one image file with matching data and make sure your image files are of the same size.")
+            #elif not hasattr(img, "png_list"): QMessageBox.information(self, "PNG Error", "Please make sure your image files are of the same size")
+                # elif len(list(set(img.png_list).intersection(img.dict))) == 0: QMessageBox.information(self, "Error", "Chosen image files do not match any file names in the given data")
+                # #elif len(self.images) or len(self.data) == 0: QMessageBox.information(self, "Data Error", "Please provide at least one image file and relevant data")
+        else:
+            sender = self.sender()  # returns which button gets clicked.
+            if sender == self.draw_button: # when self.draw_button is clicked, an image is drawn according to the data in the created instance above and shown on a new window.
+                img.draw_all(strokes)
+            elif sender == self.coordinate_button:  # when self.coordinate_button is clicked, coordinates of all strokes in the resulting image are written and saved in a ped file.
                 name = QFileDialog.getSaveFileName(self, 'Save File', "", "Ped Files (*.ped)")[0] + ".ped"
-                shutil.copy(os.path.abspath(img.filename), name)
-                if os.path.basename(name) != img.filename: os.remove(img.filename)
-                QMessageBox.information(self, "Writing Coordinates", "Task completed!")
-        failed_images = []
-        for image in self.images:
-            if os.path.basename(image) not in self.data:
-                failed_images.append(os.path.basename(image))
-        if len(failed_images) > 0: QMessageBox.information(self, "Failed", "Image(s) were discarded due to lack of relevant stroke data")
+                img.coordinate_file(name, strokes)
+            failed_images = []
+            for image in self.images:
+                if os.path.basename(image) not in self.data:
+                    failed_images.append(os.path.basename(image))
+            if len(failed_images) > 0: QMessageBox.information(self, "Failed", "Image(s) were discarded due to lack of relevant stroke data: " + ", ".join(failed_images))
 
 
     EXIT_CODE_REBOOT = -345  # used for restarting the app, clearing all previous images and data.

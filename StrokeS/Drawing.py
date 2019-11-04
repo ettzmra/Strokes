@@ -24,10 +24,6 @@ class Strokes:
                     black_pxls.append((x, y))
         return black_pxls
 
-    def spec_values(self):
-        for png in self.png_list:
-            data = self.dict[png]
-
 
     def lines(self, png):
         specs = self.dict[png]   # this is the dictionary of specifications given for the png in json file.
@@ -111,30 +107,38 @@ class Strokes:
             y1 += density
         return coordinate_list, specs["color"]
 
-    def all_points(self):  # writing all stroke coordinates in a ped file:
-        self.filename = str(uuid.uuid4()) + ".ped"
-        with open(self.filename, "a+") as ped_file:
-            ped_file.write("Stroke CoordinateSystem Origin (0, 0, 0) Max (640, 480, 1)")
-            for png in self.png_list:
-                if png in self.dict and self.dict[png]["pattern"] in self.methods:
-                    ped_file.write("\n \n")
-                    list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
-                    ped_file.write("Color Get " + color.capitalize() + "\n \n")
-                    for each_stroke in list_of_coordinates:
-                        for points in each_stroke:
-                            ped_file.write(str(points) + " ")
-                        ped_file.write("\n")
 
-    def draw_all(self):  # drawing the resulting image depending on the given data in a created instance.
+    def all_points(self):
+        images_matching_data = list(set(self.png_list).intersection(self.dict))
+        if len(images_matching_data) > 0:
+            all_points = []
+            for png in images_matching_data:
+                if self.dict[png]["pattern"] in self.methods:
+                    list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
+                    all_points.append((list_of_coordinates, color))
+        return all_points
+
+
+    def coordinate_file(self, name, coord_lst):  # writing all stroke coordinates in a ped file:
+        with open(name, "w") as ped_file:
+            ped_file.write("Stroke CoordinateSystem Origin (0, 0, 0) Max (640, 480, 1)")
+            for coordinates, color in coord_lst:
+                ped_file.write("\n \n")
+                ped_file.write("Color Get " + color.capitalize() + "\n \n")
+                for each_stroke in coordinates:
+                    for points in each_stroke:
+                        ped_file.write(str(points) + " ")
+                    ped_file.write("\n")
+
+
+    def draw_all(self, coord_lst):  # drawing the resulting image depending on the given data in a created instance.
         img = Image.new('RGB', self.img_size, color='white')
         img_draw = ImageDraw.Draw(img) 
-        for png in self.png_list:
-            if png in self.dict and self.dict[png]["pattern"] in self.methods:
-                list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
-                for points_list in list_of_coordinates:
-                    if len(points_list) == 2:
-                        img_draw.line((points_list[0], points_list[1]), fill=color)
-                    elif len(points_list) > 2:
-                        for index in range(len(points_list)):
-                            img_draw.line((points_list[index], points_list[index-1]), fill=color)
+        for coordinates, color in coord_lst:
+            for points_list in coordinates:
+                if len(points_list) == 2:
+                    img_draw.line((points_list[0], points_list[1]), fill=color)
+                elif len(points_list) > 2:
+                    for index in range(len(points_list)):
+                        img_draw.line((points_list[index], points_list[index-1]), fill=color)
         img.show()
