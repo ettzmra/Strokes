@@ -25,7 +25,7 @@ class Specs(QWidget):   # contents of the pop-up configuration window for custom
     def given_text(self, text):  # This function saves the above mentioned values given by the user as input.
         if self.lst is None:
             try: num = int(text)
-            except:
+            except (AttributeError, ValueError) :
                 if hasattr(self, 'input'): del self.input  # deletes the previous input when it's deleted or replaced by the user on the line edit box.
             else:
                 if num > 0: self.input = num
@@ -83,7 +83,7 @@ class NewData(QWidget):  # Pop-up window for the user to enter new values to be 
                 if each.spec in random_specs:
                     if each.spec == "position": chosen_specs[self.img]["density"] = 0
                     else: chosen_specs[self.img][each.spec] = 0
-            if not hasattr(each, 'input') and each.spec not in chosen_specs[self.img]:  # In case of no value input/selection or randomization on a particular spec, the user is urged to enter a number or select from the list.
+            if not hasattr(each, 'input') and each.spec not in chosen_specs[self.img]:  # In case of no value input/selection or randomization on a particular spec, the user is prompted to enter a number or select from the list.
                 QMessageBox.information(self, "Warning", "Please make selection", QMessageBox.Ok)
                 break
         if len(chosen_specs[self.img]) == 6: # When all necessary data is given, button clicks yield results.
@@ -151,13 +151,13 @@ class MainApp(QWidget):  # Main application and window
         except: pass
         else:
             try: self.data.update(json.loads(content))
-            except: QMessageBox.information(self, "JSON Error", "Please fix the errors in your file", QMessageBox.Ok)
+            except ValueError: QMessageBox.information(self, "JSON Error", "Please fix the errors in your file", QMessageBox.Ok)
 
 
     def change_json(self):  # enables an already opened json file to be changed using the self.textbox as well as self.data to be updated by the altered content.
         text = self.textbox.toPlainText()
         try: self.data.update(json.loads(text))
-        except: QMessageBox.information(self, "JSON Error", "Please provide proper data", QMessageBox.Ok)
+        except ValueError: QMessageBox.information(self, "JSON Error", "Please provide proper data", QMessageBox.Ok)
 
 
     def new_data(self, lst):  # pop-up window for entering new stroke data for an image.
@@ -198,21 +198,19 @@ class MainApp(QWidget):  # Main application and window
 
     def draw_patterns_and_get_coordinates(self): # this method is connected to self.draw_button and self.coordinate_button, gets called when at least one of them are clicked.
         img = Drawing.Strokes(self.images, self.data)  # creates an instance of Strokes class.
-        try: strokes = img.all_points()
-        except: QMessageBox.information(self, "Error", "Please provide at least one image file with matching data and make sure your image files are of the same size.")
-            #elif not hasattr(img, "png_list"): QMessageBox.information(self, "PNG Error", "Please make sure your image files are of the same size")
-                # elif len(list(set(img.png_list).intersection(img.dict))) == 0: QMessageBox.information(self, "Error", "Chosen image files do not match any file names in the given data")
-                # #elif len(self.images) or len(self.data) == 0: QMessageBox.information(self, "Data Error", "Please provide at least one image file and relevant data")
+        try: strokes = img.all_points()  #returns all stroke coordinates for given images and data.
+        except AttributeError : QMessageBox.information(self, "PNG Error", "Please provide at least one image file and make sure your image files are of the same size")
+        except UnboundLocalError : QMessageBox.information(self, "Data Error", "Please provide data matching at least one of the opened image files.")
         else:
-            sender = self.sender()  # returns which button gets clicked.
-            if sender == self.draw_button: # when self.draw_button is clicked, an image is drawn according to the data in the created instance above and shown on a new window.
-                img.draw_all(strokes)
-            elif sender == self.coordinate_button:  # when self.coordinate_button is clicked, coordinates of all strokes in the resulting image are written and saved in a ped file.
-                name = QFileDialog.getSaveFileName(self, 'Save File', "", "Ped Files (*.ped)")[0] + ".ped"
-                img.coordinate_file(name, strokes)
+            if len(strokes) > 0:
+                sender = self.sender()  # returns which button gets clicked.
+                if sender == self.draw_button: img.draw_all(strokes)  # when self.draw_button is clicked, an image is drawn according to the data in the created instance above and shown on a new window.
+                elif sender == self.coordinate_button:  # when self.coordinate_button is clicked, coordinates of all strokes in the resulting image are written and saved in a ped file.
+                    name = QFileDialog.getSaveFileName(self, 'Save File', "", "Ped Files (*.ped)")[0] + ".ped"  # prompts the user to choose an existing ped file or create a new one to save coordinates of strokes.
+                    img.coordinate_file(name, strokes)  # saves stroke coordinates in a ped file given by the user.
             failed_images = []
             for image in self.images:
-                if os.path.basename(image) not in self.data:
+                if os.path.basename(image) not in self.data or self.data[os.path.basename(image)]["pattern"] not in img.methods:
                     failed_images.append(os.path.basename(image))
             if len(failed_images) > 0: QMessageBox.information(self, "Failed", "Image(s) were discarded due to lack of relevant stroke data: " + ", ".join(failed_images))
 
