@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw
-import math, os, random, uuid
+import math, os, random
 from math import pi
 
 
