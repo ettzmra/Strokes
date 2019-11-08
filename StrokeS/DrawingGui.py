@@ -38,6 +38,7 @@ class NewData(QWidget):  # Pop-up window for the user to enter new values to be 
     def __init__(self, image, data):
         super().__init__()
         self.img = os.path.basename(image)
+        self.img_full_path = image
         self.spec_dict = data
         self.initUI()
 
@@ -90,8 +91,9 @@ class NewData(QWidget):  # Pop-up window for the user to enter new values to be 
             if sender == self.save_btn: self.spec_dict.update(chosen_specs)  # if the button clicked is save button, the main data dictionary gets updated by the values in chosen_specs.
             else:
                 image = Drawing.Strokes([self.img_full_path], chosen_specs)
-                if sender == self.preview_btn: image.draw_all()  # when preview button is clicked, an image is drawn according to the data in chosen_specs and shown by a pop-up window.
-                else: image.all_points(self.img + ".ped")  # when coordinate button is clicked, a ped file containing the stroke coordinates of an image according to the data in chosen_specs
+                strokes = image.all_points()
+                if sender == self.preview_btn: image.draw_all(strokes)  # when preview button is clicked, an image is drawn according to the data in chosen_specs and shown by a pop-up window.
+                else: image.coordinate_file(self.img + ".ped", strokes)  # when coordinate button is clicked, a ped file containing the stroke coordinates of an image according to the data in chosen_specs
 
 class MainApp(QWidget):  # Main application and window
     def __init__(self):
@@ -206,8 +208,10 @@ class MainApp(QWidget):  # Main application and window
                 sender = self.sender()  # returns which button gets clicked.
                 if sender == self.draw_button: img.draw_all(strokes)  # when self.draw_button is clicked, an image is drawn according to the data in the created instance above and shown on a new window.
                 elif sender == self.coordinate_button:  # when self.coordinate_button is clicked, coordinates of all strokes in the resulting image are written and saved in a ped file.
-                    name = QFileDialog.getSaveFileName(self, 'Save File', "", "Ped Files (*.ped)")[0] + ".ped"  # prompts the user to choose an existing ped file or create a new one to save coordinates of strokes.
+                    name = QFileDialog.getSaveFileName(self, 'Save File', "", "Ped Files (*.ped)")[0]  # prompts the user to choose an existing ped file or create a new one to save coordinates of strokes.
+                    print(name)
                     img.coordinate_file(name, strokes)  # saves stroke coordinates in a ped file given by the user.
+                    QMessageBox.information(self, "Writing Coordinates", "Task completed!")
             failed_images = []
             for image in self.images:
                 if os.path.basename(image) not in self.data or self.data[os.path.basename(image)]["pattern"] not in img.methods:

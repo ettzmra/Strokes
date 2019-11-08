@@ -121,7 +121,8 @@ class Strokes:
 
     def coordinate_file(self, name, coord_lst):  # writing all stroke coordinates in a ped file:
         with open(name, "w") as ped_file:
-            ped_file.write("Stroke CoordinateSystem Origin (0, 0, 0) Max (640, 480, 1)")
+            ped_file.write("Stroke CoordinateSystem Origin (0, 0, 0) Max (640, 400, 1)" + "\n")
+            ped_file.write("Tool Get davinci_college_12")
             for coordinates, color in coord_lst:
                 ped_file.write("\n \n")
                 ped_file.write("Color Get " + color.capitalize() + "\n \n")
