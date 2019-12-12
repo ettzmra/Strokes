@@ -1,6 +1,7 @@
 from PIL import Image, ImageDraw
 import math, os, random
 from math import pi
+import time
 
 
 class Strokes:
@@ -15,27 +16,34 @@ class Strokes:
 
 
     def black_area(self, png_file):
+        start_time = time.time()
         im = Image.open(png_file)
         pix = im.load()  # gives pixel color
         black_pxls = []
         for y in range(im.size[1]):  # looping through all coordinates
             for x in range(im.size[0]):
                 if pix[x, y] == (0, 0, 0):  # if a pixel is black, its coordinate is saved to the black_pxls list.
-                    black_pxls.append((x, y))
+                    black_pxls.append((x,y))
+        print("black area--- %s seconds ---" % (time.time() - start_time))
         return black_pxls
 
 
     def lines(self, png):
-        specs = self.dict[png]   # this is the dictionary of specifications given for the png in json file.
+        start_time = time.time()
+        specs = self.dict[png]
         coordinate_list = []
         # formulating the slope:
         angle_cos = round(math.cos(math.radians(specs["angle"])), 2)
         angle_sin = round(math.sin(math.radians(specs["angle"])), 2)
+        y_coordinates = [point[1] for point in self.area[png]]
+        x_coordinates = [point[0] for point in self.area[png]]
+        smallest_x_coord, biggest_x_coord = min(x_coordinates), max(x_coordinates)
+        smallest_y_coord, biggest_y_coord = min(y_coordinates), max(y_coordinates)
         # looping certain coordinate points in black area of the png in accordance with the density given:
-        y1 = self.area[png][0][1]  # y coordinate of start_point
-        while y1 <= max([point[1] for point in self.area[png]]):  # loops till the highest y coord. is processed.
-            x1 = min([point[0] for point in self.area[png]])  # x coordinate of start_point
-            while x1 <= max([point[0] for point in self.area[png]]):  # loops till the highest y coord. is processed.
+        y1 = smallest_y_coord  # y coordinate of start_point
+        while y1 <= biggest_y_coord:  # loops till the highest y coord. is processed.
+            x1 = smallest_x_coord  # x coordinate of start_point
+            while x1 <= biggest_x_coord:  # loops till the highest y coord. is processed.
                 # randomization of features if it's specified in the specs dictionary:
                 if specs["random"] == "all" or "size" in specs["random"]:
                     if specs["size"] > 0 : length = random.randint(1, math.ceil(specs["size"] * 3))
@@ -52,9 +60,9 @@ class Strokes:
                 x2, y2 = (x1 + slope[0]), (y1 + slope[1])  # end point coordinates of one line
                 if (round(x1), round(y1)) and (round(x2), round(y2)) in self.area[png]:
                     coordinate_list.append([(x1, y1), (x2, y2)])  # adds start and end points of one stroke, e.g. one line of the pattern.
-                else: pass
                 x1 += density  # x coord of start point of each line based on density, whether randomized or not.
             y1 += density   # y coord of start point of each line based on density, whether randomized or not.
+        print("lines--- %s seconds ---" % (time.time() - start_time))
         return coordinate_list, specs["color"]
 
     def circles(self, png):
@@ -109,6 +117,7 @@ class Strokes:
 
 
     def all_points(self):
+        start_time = time.time()
         images_matching_data = list(set(self.png_list).intersection(self.dict))
         if len(images_matching_data) > 0:
             all_points = []
@@ -116,6 +125,7 @@ class Strokes:
                 if self.dict[png]["pattern"] in self.methods:
                     list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
                     all_points.append((list_of_coordinates, color))
+        print("all points--- %s seconds ---" % (time.time() - start_time))
         return all_points
 
 
@@ -133,8 +143,9 @@ class Strokes:
 
 
     def draw_all(self, coord_lst):  # drawing the resulting image depending on the given data in a created instance.
-        img = Image.new('RGB', self.img_size, color='white')
-        img_draw = ImageDraw.Draw(img) 
+        img = Image.new('RGB', self.img_size, color='white') #opening a blank image file
+        img_draw = ImageDraw.Draw(img)
+        start_time = time.time()
         for coordinates, color in coord_lst:
             for points_list in coordinates:
                 if len(points_list) == 2:
@@ -143,3 +154,4 @@ class Strokes:
                     for index in range(len(points_list)):
                         img_draw.line((points_list[index], points_list[index-1]), fill=color)
         img.show()
+        print("draw all--- %s seconds ---" % (time.time() - start_time))
