@@ -16,7 +16,6 @@ class Strokes:
 
 
     def black_area(self, png_file):
-        start_time = time.time()
         im = Image.open(png_file)
         pix = im.load()  # gives pixel color
         black_pxls = []
@@ -24,7 +23,6 @@ class Strokes:
             for x in range(im.size[0]):
                 if pix[x, y] == (0, 0, 0):  # if a pixel is black, its coordinate is saved to the black_pxls list.
                     black_pxls.append((x,y))
-        print("black area--- %s seconds ---" % (time.time() - start_time))
         return black_pxls
 
 
@@ -68,10 +66,14 @@ class Strokes:
     def circles(self, png):
         specs = self.dict[png]
         coordinate_list = []
-        y1 = self.area[png][0][1]  # y coordinate of start_point
-        while y1 <= max([point[1] for point in self.area[png]]):
-            x1 = min([point[0] for point in self.area[png]])  # x coordinate of start_point
-            while x1 <= max([point[0] for point in self.area[png]]):
+        y_coordinates = [point[1] for point in self.area[png]]
+        x_coordinates = [point[0] for point in self.area[png]]
+        smallest_x_coord, biggest_x_coord = min(x_coordinates), max(x_coordinates)
+        smallest_y_coord, biggest_y_coord = min(y_coordinates), max(y_coordinates)
+        y1 = smallest_y_coord
+        while y1 <= biggest_y_coord:  # loops till the highest y coord. is processed.
+            x1 = smallest_x_coord  # x coordinate of start_point
+            while x1 <= biggest_x_coord:  # loops till the highest y coord. is processed.
                 if specs["random"] == "all" or "size" in specs["random"]:
                     if specs["size"] > 0: diameter = random.uniform(1, specs["size"] * 6)
                     else: diameter = random.uniform(1, 50)
@@ -94,11 +96,15 @@ class Strokes:
     def dots(self, png):
         specs = self.dict[png]
         coordinate_list = []
+        y_coordinates = [point[1] for point in self.area[png]]
+        x_coordinates = [point[0] for point in self.area[png]]
+        smallest_x_coord, biggest_x_coord = min(x_coordinates), max(x_coordinates)
+        smallest_y_coord, biggest_y_coord = min(y_coordinates), max(y_coordinates)
+        y1 = smallest_y_coord
         # looping certain coordinate points in black area of the png in accordance with the density given:
-        y1 = self.area[png][0][1]  # y coordinate of start_point
-        while y1 <= max([point[1] for point in self.area[png]]):
-            x1 = min([point[0] for point in self.area[png]])  # x coordinate of start_point
-            while x1 <= max([point[0] for point in self.area[png]]):
+        while y1 <= biggest_y_coord:  # loops till the highest y coord. is processed.
+            x1 = smallest_x_coord  # x coordinate of start_point
+            while x1 <= biggest_x_coord:  # loops till the highest y coord. is processed.
                 if specs["random"] == "all" or "size" in specs["random"]:
                     if specs["size"] > 0: length = random.randint(1, math.ceil(specs["size"] * 3))
                     else: length = random.uniform(0.5, 3)
@@ -117,7 +123,6 @@ class Strokes:
 
 
     def all_points(self):
-        start_time = time.time()
         images_matching_data = list(set(self.png_list).intersection(self.dict))
         if len(images_matching_data) > 0:
             all_points = []
@@ -125,7 +130,6 @@ class Strokes:
                 if self.dict[png]["pattern"] in self.methods:
                     list_of_coordinates, color = self.methods[self.dict[png]["pattern"]](png)
                     all_points.append((list_of_coordinates, color))
-        print("all points--- %s seconds ---" % (time.time() - start_time))
         return all_points
 
 
